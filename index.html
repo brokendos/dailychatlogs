@@ -18,30 +18,24 @@
             overflow: auto;
             background-color: #f9f9f9;
         }
-        #result {
-            margin-top: 20px; /* Spacing for better visibility */
+        #highlightedResults {
             font-weight: bold; /* Make results stand out */
-        }
-        .highlight {
-            background-color: yellow; /* Highlight color for occurrences */
+            margin-top: 20px; /* Spacing for better visibility */
         }
     </style>
 </head>
 <body>
     <h1>Search in Text File</h1>
-    <input type="text" id="searchInput" placeholder="Enter text to search" autofocus>
+    <input type="text" id="searchInput" placeholder="Enter username or text to search" autofocus>
 
     <h2>File Content:</h2>
     <div id="fileContent"></div>
-    
-    <h2>Highlighted Results:</h2>
-    <div id="highlightedResults"></div> <!-- Container for highlighted results -->
 
     <script>
-        let fileContent = '';
+        let fileContent = [];
 
-        // Fetch the text file
-        fetch('logs.txt') // Replace with actual path to your .txt file
+        // Fetch the text file and parse it into structured data
+        fetch('logs.txt') // Replace with the actual path to your .txt file
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -49,36 +43,35 @@
                 return response.text();
             })
             .then(data => {
-                fileContent = data;
-                document.getElementById('fileContent').textContent = fileContent; // Display file content
+                // Split the text file content into lines
+                fileContent = data.split('\n').map(line => {
+                    const [username, message] = line.split(':');
+                    return { username: username.trim(), message: message ? message.trim() : '' };
+                });
+                displayFileContent(); // Display initial file content
             })
             .catch(error => {
                 console.error('Error fetching the text file:', error);
-                document.getElementById('result').textContent = 'Error loading the file. Please check the console for details.';
+                document.getElementById('fileContent').textContent = 'Error loading the file. Please check the console for details.';
             });
+
+        // Function to display file content
+        function displayFileContent(results = fileContent) {
+            const contentDiv = document.getElementById('fileContent');
+            contentDiv.innerHTML = results.map(line => `${line.username}: ${line.message}`).join('<br>');
+        }
 
         // Search functionality
         document.getElementById('searchInput').addEventListener('input', function() {
-            const searchText = this.value.trim();
-            const highlightedResultsElement = document.getElementById('highlightedResults');
+            const searchText = this.value.trim().toLowerCase();
 
-            if (fileContent) {
-                if (searchText === '') {
-                    highlightedResultsElement.innerHTML = ''; // Clear results if input is empty
-                    return;
-                }
-                
-                // Create a regular expression for the search term
-                const regex = new RegExp(`(${searchText})`, 'gi');
-                
-                // Replace occurrences with highlighted text
-                const highlightedContent = fileContent.replace(regex, '<span class="highlight">$1</span>');
-                
-                // Update highlighted results display
-                highlightedResultsElement.innerHTML = highlightedContent;
-            } else {
-                highlightedResultsElement.textContent = 'Please wait until the file is loaded.';
-            }
+            // Filter results based on search input
+            const results = fileContent.filter(({ username, message }) => {
+                return username.toLowerCase().includes(searchText) || message.toLowerCase().includes(searchText);
+            });
+
+            // Display filtered results
+            displayFileContent(results);
         });
     </script>
 </body>
