@@ -26,8 +26,9 @@
 </head>
 <body>
     <h1>Search in Text File</h1>
-    <input type="text" id="searchInput" placeholder="Enter username or text to search" autofocus>
-
+    <input type="text" id="usernameSearchInput" placeholder="Search by username" autofocus>
+    <input type="text" id="commentSearchInput" placeholder="Search by comment">
+    
     <h2>File Content:</h2>
     <div id="fileContent"></div>
 
@@ -48,7 +49,7 @@
                     const [username, message] = line.split(':');
                     return { username: username.trim(), message: message ? message.trim() : '' };
                 });
-                displayFileContent(); // Display initial file content
+                displayFileContent(); // Show initial file content
             })
             .catch(error => {
                 console.error('Error fetching the text file:', error);
@@ -61,13 +62,28 @@
             contentDiv.innerHTML = results.map(line => `${line.username}: ${line.message}`).join('<br>');
         }
 
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', function() {
-            const searchText = this.value.trim().toLowerCase();
+        // Search functionality for username
+        document.getElementById('usernameSearchInput').addEventListener('input', function () {
+            const usernameSearchText = this.value.trim().toLowerCase();
+            const commentSearchText = document.getElementById('commentSearchInput').value.trim().toLowerCase();
 
-            // Filter results based on search input
+            // Filter results based on username search input
             const results = fileContent.filter(({ username, message }) => {
-                return username.toLowerCase().includes(searchText) || message.toLowerCase().includes(searchText);
+                return username.toLowerCase().includes(usernameSearchText);
+            });
+
+            // Display filtered results
+            displayFileContent(results);
+        });
+
+        // Search functionality for comments
+        document.getElementById('commentSearchInput').addEventListener('input', function () {
+            const commentSearchText = this.value.trim().toLowerCase();
+            const usernameSearchText = document.getElementById('usernameSearchInput').value.trim().toLowerCase();
+
+            // Filter results based on comment search input
+            const results = fileContent.filter(({ username, message }) => {
+                return message.toLowerCase().includes(commentSearchText);
             });
 
             // Display filtered results
