@@ -26,8 +26,7 @@
 </head>
 <body>
     <h1>Search in Text File</h1>
-    <input type="text" id="searchInput" placeholder="Enter text to search">
-    <button id="searchButton">Search</button>
+    <input type="text" id="searchInput" placeholder="Enter text to search" autofocus>
     
     <h2>File Content:</h2>
     <div id="fileContent"></div>
@@ -55,8 +54,8 @@
             });
 
         // Search functionality
-        document.getElementById('searchButton').addEventListener('click', function() {
-            const searchText = document.getElementById('searchInput').value.trim();
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchText = this.value.trim();
             const resultElement = document.getElementById('result');
 
             if (fileContent) {
