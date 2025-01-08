@@ -6,8 +6,8 @@
     <title>Text File Search</title>
     <style>
         body {
-            font-family: Arial, sans-serif; /* Added a font for better readability */
-            margin: 20px; /* Added margin for a cleaner look */
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
         #fileContent {
             white-space: pre-wrap; /* Preserve whitespace and line breaks */
@@ -22,16 +22,20 @@
             margin-top: 20px; /* Spacing for better visibility */
             font-weight: bold; /* Make results stand out */
         }
+        .highlight {
+            background-color: yellow; /* Highlight color for occurrences */
+        }
     </style>
 </head>
 <body>
     <h1>Search in Text File</h1>
     <input type="text" id="searchInput" placeholder="Enter text to search" autofocus>
-    
+
     <h2>File Content:</h2>
     <div id="fileContent"></div>
     
-    <p id="result"></p>
+    <h2>Highlighted Results:</h2>
+    <div id="highlightedResults"></div> <!-- Container for highlighted results -->
 
     <script>
         let fileContent = '';
@@ -56,23 +60,24 @@
         // Search functionality
         document.getElementById('searchInput').addEventListener('input', function() {
             const searchText = this.value.trim();
-            const resultElement = document.getElementById('result');
+            const highlightedResultsElement = document.getElementById('highlightedResults');
 
             if (fileContent) {
                 if (searchText === '') {
-                    resultElement.textContent = 'Please enter a search term.';
+                    highlightedResultsElement.innerHTML = ''; // Clear results if input is empty
                     return;
                 }
-                const regex = new RegExp(searchText, 'gi');
-                const matches = fileContent.match(regex);
-
-                if (matches) {
-                    resultElement.textContent = `Found ${matches.length} occurrence(s) of "${searchText}".`;
-                } else {
-                    resultElement.textContent = `No occurrences of "${searchText}" found.`;
-                }
+                
+                // Create a regular expression for the search term
+                const regex = new RegExp(`(${searchText})`, 'gi');
+                
+                // Replace occurrences with highlighted text
+                const highlightedContent = fileContent.replace(regex, '<span class="highlight">$1</span>');
+                
+                // Update highlighted results display
+                highlightedResultsElement.innerHTML = highlightedContent;
             } else {
-                resultElement.textContent = 'Please wait until the file is loaded.';
+                highlightedResultsElement.textContent = 'Please wait until the file is loaded.';
             }
         });
     </script>
