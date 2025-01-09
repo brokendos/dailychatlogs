@@ -22,6 +22,10 @@
             font-weight: bold; /* Make results stand out */
             margin-top: 20px; /* Spacing for better visibility */
         }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
@@ -40,10 +44,12 @@
         </span>
         
         <div id="highlightedResults"></div> <!-- Add a div for statistics -->
+        <button id="toggleButton">Show Top 100</button> <!-- Button to toggle between top 10 and top 100 -->
     </div>
 
     <script>
         let fileContent = [];
+        let showTop100 = false; // State to track whether to show top 10 or top 100
 
         // Fetch the text file and parse it into structured data
         fetch('logs.txt') // Replace with the actual path to your .txt file
@@ -92,15 +98,15 @@
                 });
             });
 
-            // Get the top 10 most active users
+            // Get the top 10 or top 100 most active users
             const mostActiveUsers = Object.entries(usernameCount)
                 .sort((a, b) => b[1] - a[1]) // Sort by message count in descending order
-                .slice(0, 100); // Get top 10
+                .slice(0, showTop100 ? 100 : 10); // Get top 100 or 10
 
-            // Get the top 10 most used words
+            // Get the top 10 or top 100 most used words
             const mostUsedWords = Object.entries(wordCount)
                 .sort((a, b) => b[1] - a[1]) // Sort by word count in descending order
-                .slice(0, 100) // Get top 10
+                .slice(0, showTop100 ? 100 : 10); // Get top 100 or 10
 
             // Display results
             const resultsDiv = document.getElementById('highlightedResults');
@@ -116,6 +122,13 @@
                 </ul>
             `;
         }
+
+        // Toggle button functionality
+        document.getElementById('toggleButton').addEventListener('click', function () {
+            showTop100 = !showTop100; // Toggle the state
+            this.textContent = showTop100 ? 'Show Top 10' : 'Show Top 100'; // Update button text
+            displayStatistics(); // Re-display statistics based on new state
+        });
 
         // Search functionality for username
         document.getElementById('usernameSearchInput').addEventListener('input', function () {
