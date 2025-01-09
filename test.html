@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text File Search</title>
+    <title>Daily Chat Logs</title>
     <style>
         body {
-            font-family: Arial, sans-serif; / Added a font for better readability /
-            margin: 20px; / Added margin for a cleaner look /
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
         #fileContent {
-            white-space: pre-wrap; / Preserve whitespace and line breaks /
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
             margin-top: 20px;
             border: 1px solid #ccc;
             padding: 10px;
@@ -18,27 +18,33 @@
             overflow: auto;
             background-color: #f9f9f9;
         }
-        #result {
-            margin-top: 20px; / Spacing for better visibility /
-            font-weight: bold; / Make results stand out /
+        #highlightedResults {
+            font-weight: bold; /* Make results stand out */
+            margin-top: 20px; /* Spacing for better visibility */
         }
     </style>
 </head>
 <body>
-    <h1>Search in Text File</h1>
-    <input type="text" id="searchInput" placeholder="Enter text to search">
-    <button id="searchButton">Search</button>
+    <center>
+        <img src="https://brokendos.github.io/dailychatlogs/dclogslogo.png" height="100">
+    </center>
     
-    <h2>File Content:</h2>
-    <div id="fileContent"></div>
-    
-    <p id="result"></p>
+    <div class="mainBox">
+        <h1>Search Comments</h1>
+        <input type="text" id="usernameSearchInput" placeholder="Search by username" autofocus>
+        <input type="text" id="commentSearchInput" placeholder="Search by comment">
+        
+        <h2>File Content:</h2>
+        <div id="fileContent"></div>
+        
+        <div id="highlightedResults"></div> <!-- Add a div for statistics -->
+    </div>
 
     <script>
-        let fileContent = '';
+        let fileContent = [];
 
-        // Fetch the text file
-        fetch('logs.txt') // Replace with actual path to your .txt file
+        // Fetch the text file and parse it into structured data
+        fetch('logs.txt') // Replace with the actual path to your .txt file
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -46,35 +52,83 @@
                 return response.text();
             })
             .then(data => {
-                fileContent = data;
-                document.getElementById('fileContent').textContent = fileContent; // Display file content
+                // Split the text file content into lines
+                fileContent = data.split('\n').map(line => {
+                    const [username, message] = line.split(':');
+                    return { username: username.trim(), message: message ? message.trim() : '' };
+                });
+                displayFileContent(); // Show initial file content
+                displayStatistics(); // Show statistics after loading
             })
             .catch(error => {
                 console.error('Error fetching the text file:', error);
-                document.getElementById('result').textContent = 'Error loading the file. Please check the console for details.';
+                document.getElementById('fileContent').textContent = 'Error loading the file. Please check the console for details.';
             });
 
-        // Search functionality
-        document.getElementById('searchButton').addEventListener('click', function() {
-            const searchText = document.getElementById('searchInput').value.trim();
-            const resultElement = document.getElementById('result');
+        // Function to display file content
+        function displayFileContent(results = fileContent) {
+            const contentDiv = document.getElementById('fileContent');
+            contentDiv.innerHTML = results.map(line => `${line.username}: ${line.message}`).join('<br>');
+        }
 
-            if (fileContent) {
-                if (searchText === '') {
-                    resultElement.textContent = 'Please enter a search term.';
-                    return;
-                }
-                const regex = new RegExp(searchText, 'gi');
-                const matches = fileContent.match(regex);
+        // Function to display statistics
+        function displayStatistics() {
+            const usernameCount = {};
+            const wordCount = {};
 
-                if (matches) {
-                    resultElement.textContent = Found ${matches.length} occurrence(s) of "${searchText}".;
-                } else {
-                    resultElement.textContent = No occurrences of "${searchText}" found.;
+            // Calculate total messages per user and word frequency
+            fileContent.forEach(({ username, message }) => {
+                if (username) {
+                    usernameCount[username] = (usernameCount[username] || 0) + 1;
                 }
-            } else {
-                resultElement.textContent = 'Please wait until the file is loaded.';
-            }
+                const words = message.split(/\s+/);
+                words.forEach(word => {
+                    word = word.toLowerCase().replace(/[.,!?]/g, ''); // Normalize words
+                    if (word) {
+                        wordCount[word] = (wordCount[word] || 0) + 1;
+                    }
+                });
+            });
+
+            // Find most active user
+            const mostActiveUser = Object.entries(usernameCount).reduce((a, b) => a[1] > b[1] ? a : b);
+            const mostUsedWord = Object.entries(wordCount).reduce((a, b) => a[1] > b[1] ? a : b);
+
+            // Display results
+            const resultsDiv = document.getElementById('highlightedResults');
+            resultsDiv.innerHTML = `
+                <h3>Statistics:</h3>
+                <p>Most Active Person: <strong>${mostActiveUser[0]}</strong> with <strong>${mostActiveUser[1]}</strong> messages</p>
+                <p>Most Used Word: <strong>${mostUsedWord[0]}</strong> used <strong>${mostUsedWord[1]}</strong> times</p>
+            `;
+        }
+
+        // Search functionality for username
+        document.getElementById('usernameSearchInput').addEventListener('input', function () {
+            const usernameSearchText = this.value.trim().toLowerCase();
+            const commentSearchText = document.getElementById('commentSearchInput').value.trim().toLowerCase();
+
+            // Filter results based on username search input
+            const results = fileContent.filter(({ username, message }) => {
+                return username.toLowerCase().includes(usernameSearchText);
+            });
+
+            // Display filtered results
+            displayFileContent(results);
+        });
+
+        // Search functionality for comments
+        document.getElementById('commentSearchInput').addEventListener('input', function () {
+            const commentSearchText = this.value.trim().toLowerCase();
+            const usernameSearchText = document.getElementById('usernameSearchInput').value.trim().toLowerCase();
+
+            // Filter results based on comment search input
+            const results = fileContent.filter(({ username, message }) => {
+                return message.toLowerCase().includes(commentSearchText);
+            });
+
+            // Display filtered results
+            displayFileContent(results);
         });
     </script>
 </body>
