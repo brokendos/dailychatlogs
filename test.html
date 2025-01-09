@@ -95,12 +95,12 @@
             // Get the top 10 most active users
             const mostActiveUsers = Object.entries(usernameCount)
                 .sort((a, b) => b[1] - a[1]) // Sort by message count in descending order
-                .slice(0, 10); // Get top 10
+                .slice(0, 100); // Get top 10
 
             // Get the top 10 most used words
             const mostUsedWords = Object.entries(wordCount)
                 .sort((a, b) => b[1] - a[1]) // Sort by word count in descending order
-                .slice(0, 10); // Get top 10
+                .slice(0, 100) // Get top 10
 
             // Display results
             const resultsDiv = document.getElementById('highlightedResults');
