@@ -50,28 +50,41 @@
     <script>
         let fileContent = [];
         let showTop100 = false; // State to track whether to show top 10 or top 100
+        const filePaths = ['logs/113952666.txt', 'logs/113959425.txt']; // Add more file paths as needed
 
-        // Fetch the text file and parse it into structured data
-        fetch('logs.txt') // Replace with the actual path to your .txt file
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.text();
-            })
-            .then(data => {
-                // Split the text file content into lines
-                fileContent = data.split('\n').map(line => {
-                    const [username, message] = line.split(':');
-                    return { username: username.trim(), message: message ? message.trim() : '' };
+        // Function to fetch data from multiple text files
+        function fetchFiles(filePaths) {
+            const promises = filePaths.map(filePath => 
+                fetch(filePath)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to fetch file: ${filePath}`);
+                        }
+                        return response.text();
+                    })
+                    .then(data => {
+                        // Process the file content
+                        const lines = data.split('\n').map(line => {
+                            const [username, message] = line.split(':');
+                            return { username: username.trim(), message: message ? message.trim() : '' };
+                        });
+                        fileContent = fileContent.concat(lines); // Combine results
+                    })
+            );
+
+            Promise.all(promises)
+                .then(() => {
+                    displayFileContent(); // Show initial combined file content
+                    displayStatistics(); // Show statistics after loading
+                })
+                .catch(error => {
+                    console.error('Error fetching the text files:', error);
+                    document.getElementById('fileContent').textContent = 'Error loading the files. Please check the console for details.';
                 });
-                displayFileContent(); // Show initial file content
-                displayStatistics(); // Show statistics after loading
-            })
-            .catch(error => {
-                console.error('Error fetching the text file:', error);
-                document.getElementById('fileContent').textContent = 'Error loading the file. Please check the console for details.';
-            });
+        }
+
+        // Call fetchFiles with the array of file paths
+        fetchFiles(filePaths);
 
         // Function to display file content
         function displayFileContent(results = fileContent) {
